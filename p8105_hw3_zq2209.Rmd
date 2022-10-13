@@ -44,6 +44,7 @@ accel = read_csv("/Users/qizining/Desktop/p8105_hw3_zq2209/accel_data.csv")
 # Tidy
 accel_data = accel %>% 
   janitor::clean_names() %>% 
+  drop_na() %>% 
   mutate(Weekday_Weekend = ifelse(day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")) %>% 
   pivot_longer(
     activity_1:activity_1440,
