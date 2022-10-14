@@ -32,6 +32,56 @@ library(p8105.datasets)
 data("instacart")
 ```
 
+```{r}
+instacart = 
+  instacart %>% 
+  as_tibble(instacart)
+```
+
+```{r}
+# How many aisles are there, and which aisles are the most items ordered from?
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+```{r}
+# Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  ggplot(aes(x = aisle, y = n)) + 
+  geom_point() + 
+  labs(title = "Number of items ordered in each aisle",
+       x = "Aisle",
+       y = "Number of items") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+```{r}
+# Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(desc(n)) %>%
+  knitr::kable()
+```
+
+```{r}
+# Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week
+instacart %>%
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  ) %>% 
+  knitr::kable(digits = 2)
+```
 
 
 
@@ -48,25 +98,44 @@ accel_data = accel %>%
   mutate(Weekday_Weekend = ifelse(day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")) %>% 
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity", 
+    names_to = "activity_time", 
     names_prefix = "activity_",
-    values_to = "count")
+    values_to = "activity_amount")
+
+nrow(accel_data)
+ncol(accel_data)
+
+accel_data
 ```
 
 ```{r}
 # total activity over the day
 total_activity = accel_data %>% 
-  group_by(week, day) %>% 
-  summarize(total = sum(count))
+  group_by(week, day, day_id) %>% 
+  summarize(total = sum(activity_amount)) %>% 
+  knitr::kable()
+
+total_activity
 ```
 
 ```{r}
-
+# activity over the course of the 24 hours
 activity_of_day = accel_data %>% 
-  group_by(week, day_id, day) %>% 
-  summarize(total = sum(count)) %>% 
-  ggplot(aes(x = day_id, y = total, color = day)) +
-  geom_point()
+  mutate(activity_amount = round(activity_amount,0),
+         activity_time = as.integer(activity_time)) %>% 
+  ggplot(aes(x = activity_time, y = activity_amount, color = day)) +
+  geom_smooth(se = FALSE) +
+  scale_x_continuous(
+    breaks = c(0, 240, 480, 720, 960, 1200, 1440),
+    labels = c("12:00 AM", "4:00 AM", "8:00 AM", "12:00 PM", "4:00 PM", "8:00 PM", "12:00 PM")
+  ) +
+  labs(
+    title = "Activity over the course of the 24 hours",
+    x = "Time",
+    y = "Activity Amount"
+  )
+
+activity_of_day
 ```
 
 
