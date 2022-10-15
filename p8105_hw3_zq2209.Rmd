@@ -87,15 +87,16 @@ instacart %>%
 
 # Problem 2
 ```{r}
-accel = read_csv("/Users/qizining/Desktop/p8105_hw3_zq2209/accel_data.csv")
+accel = read_csv("./dataset/accel_data.csv")
 ```
 
 ```{r}
-# Tidy
+# Cleaning, tidying, and wrangling data
 accel_data = accel %>% 
   janitor::clean_names() %>% 
   drop_na() %>% 
   mutate(Weekday_Weekend = ifelse(day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")) %>% 
+  group_by(week, day_id) %>% 
   pivot_longer(
     activity_1:activity_1440,
     names_to = "activity_time", 
@@ -108,18 +109,29 @@ ncol(accel_data)
 accel_data
 ```
 
+After tidying,, cleaning and adding variables, there are 50400 rows, and 6 columns. The variables are week, day_id, day, weekday vs weekend, activity time, and activity amount. Activity time is the minute if activity in that day, and activity amount is the count of that activity in that minute.Weekday vs Weekend is whether that day is weekday or weekend.
+
+
 ```{r}
-# total activity over the day
+# Total activity over the day
 total_activity = accel_data %>% 
   group_by(week, day, day_id) %>% 
   summarize(total = sum(activity_amount)) %>% 
   knitr::kable()
-
 total_activity
+
+total_activity_plot = accel_data %>% 
+  group_by(week, day, day_id) %>% 
+  summarize(total = sum(activity_amount)) %>% 
+  ggplot(aes(x = day, y = total, color = week)) +
+  geom_point()
+total_activity_plot
 ```
 
+As shown in the plot, The total amount of activities in Friday, Monday, Saturday, and Sunday are more spread. In Thursday, Tuesday, and Wednesday, total activities are tighter. And in Saturday, it has lowest activity amount.
+
 ```{r}
-# activity over the course of the 24 hours
+# Activity over the course of the 24 hours
 activity_of_day = accel_data %>% 
   mutate(activity_amount = round(activity_amount,0),
          activity_time = as.integer(activity_time)) %>% 
@@ -131,12 +143,15 @@ activity_of_day = accel_data %>%
   ) +
   labs(
     title = "Activity over the course of the 24 hours",
-    x = "Time",
-    y = "Activity Amount"
+    x = "Time of Activity",
+    y = "Amount of Activity"
   )
 
 activity_of_day
 ```
+
+According to the graph, activity amout during 12am to 4am is really low, almost 0. And the amount start increasing from 4am. The amount from 8am to 6pm are stay approximate consistent, except for Thursday. There is a peak in 11am on Thursday. And from 8pm to 10pm, the activity amount increase, especially on Friday, the amount is the highest. From 11pm, it start decreasing.
+
 
 
 # Problem 3
@@ -154,10 +169,11 @@ nrow(ny_noaa)
 ncol(ny_noaa)
 ```
 
-There are 2595176 rows and 7 columns. The dataset contains 7 variables, which are id, date, prcp, snow, snwd(), tmax(), tmin(). prcp, snow, snwd are measured in mm. tmax and tmin are measured in tenths of degrees. But for prcp, snow, and snwd, there are many NA. 
+There are 2595176 rows and 7 columns. The dataset contains 7 variables, which are station id, date, prcp:Precipitation (tenths of mm), snow:Snowfall (mm), snwd:Snow depth (mm), tmax:Maximum temperature (tenths of degrees C), tmin:Minimum temperature (tenths of degrees C). prcp, tmax, tmin are measured in tenth, so it will be divided by 10. But for prcp, snow, and snwd, tmax, and tmin, there are many NA, shown in summary table. NAs have to be dropped during calculation later.
 
 
 ```{r}
+# Do some data cleaning
 noaa = ny_noaa %>% 
   janitor::clean_names() %>% 
   separate(col = date, into = c("year", "month", "day"), sep = "-") %>% 
@@ -170,10 +186,13 @@ noaa = ny_noaa %>%
          tmax = tmax / 10,
          tmin = tmin / 10,
          prcp = prcp / 10
-         ) 
+         ) %>% 
+  select(year, month, day, everything())
 
 noaa  
 ```
+
+
 
 ```{r}
 most_observed_snow = noaa %>% 
