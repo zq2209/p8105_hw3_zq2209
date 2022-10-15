@@ -192,37 +192,43 @@ noaa = ny_noaa %>%
 noaa  
 ```
 
-
+Setting prcp, tmax, and tmin to standard unit, dividing by 10. Create new variables of year, month, and day.
 
 ```{r}
+# The most commonly observed values for snowfall
 most_observed_snow = noaa %>% 
-  group_by(snow) %>% 
-  drop_na() %>% 
-  summarize(n_obs = n()) %>%
-  arrange(desc(n_obs))
+  count(snow) %>% 
+  arrange(desc(n))
 
 most_observed_snow
 ```
 
+The most common values are 0, NA, and 25. It make sense that most of months don't have snow. And NAs is a issue for snow.
 
 ```{r}
+# Average max temperature in January and in July in each station across years
 mean_tmax = noaa %>% 
   filter(month %in% c("Jan", "Jul")) %>% 
   group_by(year, month) %>% 
   summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>% 
-  ggplot(aes(x = year, y = mean_tmax)) +
+  ggplot(aes(x = year, y = mean_tmax, color = month)) +
   geom_point(alpha = .5) +
   geom_smooth(se = TRUE) +
-  facet_grid(. ~ month) +
   labs(title = "Average max temperature across year",
-         x = "year",
-         y = "Average max temperature")
+         x = "Year",
+         y = "Average max temperature") +
+  scale_x_continuous(
+    breaks = c(1980, 1985, 1990, 1995, 2000, 2005, 2010)
+    ) +
+  facet_grid(. ~ month)
 
 mean_tmax
 ```
   
+By the plots, the most temperature lies around the line, which make sense that within a month, the temperature don't change dramatically. In January, the temperatures approximately are between -5 and 5, some points lies a little bit far from the line. In July, the average temperatures are from 25 to 30, temperatures are more tight than Jan. And there is no obvious outliers.
 
 ```{r}
+# The plot showing tmax vs tmin
 tmax_vs_tmin = noaa %>% 
   drop_na() %>% 
   ggplot(aes(x = tmin, y = tmax)) +
@@ -234,19 +240,30 @@ tmax_vs_tmin = noaa %>%
 tmax_vs_tmin  
 ```
 
+From the plot, it is not linear, more likely a s shape. Max temperatures are approximate from -15 to 35. And the min temperature are from -60 to 40. 
+
 ```{r}
+# The plot showing snowfall values greater than 0 and less than 100 separately by year.
 snowfall = noaa %>% 
   drop_na() %>% 
-  filter(snow > 0) %>% 
-  filter(snow < 100) %>% 
+  filter(snow > 0, snow < 100) %>% 
   mutate(year = as.factor(year)) %>% 
   ggplot(aes(x = snow, y = year, fill = year)) +
-  geom_density_ridges(scale = 0.85) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
   labs(title = "Snowfall distribution by year",
          x = "Snowfall",
          y = "Year")
 snowfall
 ```
 
+From the plot, the distributions are almost the same by years. And the values from 0 to 40 are the most popular.
+
+```{r}
+# Two-panel plot
+library(patchwork)
+tmax_vs_tmin + snowfall
+```
+
+The left is the plot showing tmax vs tmin, and the right is plot showing snowfall values greater than 0 and less than 100 separately by year. 
 
 
