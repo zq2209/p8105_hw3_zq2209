@@ -252,13 +252,13 @@ snowfall = noaa %>%
   geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
   labs(title = "Snowfall distribution by year",
          x = "Snowfall",
-         y = "Year")
+         y = "Year") 
 snowfall
 ```
 
 From the plot, the distributions are almost the same by years. And the values from 0 to 40 are the most popular.
 
-```{r}
+```{r, fig.width=6, fig.height=4}
 # Two-panel plot
 library(patchwork)
 tmax_vs_tmin + snowfall
