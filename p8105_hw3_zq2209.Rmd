@@ -230,7 +230,6 @@ By the plots, the most temperature lies around the line, which make sense that w
 ```{r}
 # The plot showing tmax vs tmin
 tmax_vs_tmin = noaa %>% 
-  drop_na() %>% 
   ggplot(aes(x = tmin, y = tmax)) +
   geom_smooth() +
   labs(title = "tmax vs. tmin",
@@ -240,12 +239,11 @@ tmax_vs_tmin = noaa %>%
 tmax_vs_tmin  
 ```
 
-From the plot, it is not linear, more likely a s shape. Max temperatures are approximate from -15 to 35. And the min temperature are from -60 to 40. 
+From the plot, it is not very linear overall, more likely a s shape in the middle. Max temperatures are approximate from -20 to 45. And the min temperature are from -60 to 60. 
 
 ```{r}
 # The plot showing snowfall values greater than 0 and less than 100 separately by year.
 snowfall = noaa %>% 
-  drop_na() %>% 
   filter(snow > 0, snow < 100) %>% 
   mutate(year = as.factor(year)) %>% 
   ggplot(aes(x = snow, y = year, fill = year)) +
