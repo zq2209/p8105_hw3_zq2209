@@ -173,7 +173,7 @@ There are 2595176 rows and 7 columns. The dataset contains 7 variables, which ar
 
 
 ```{r}
-# Do some data cleaning
+# Do some data cleaning & NAs issue
 noaa = ny_noaa %>% 
   janitor::clean_names() %>% 
   separate(col = date, into = c("year", "month", "day"), sep = "-") %>% 
@@ -189,10 +189,12 @@ noaa = ny_noaa %>%
          ) %>% 
   select(year, month, day, everything())
 
-noaa  
+summary(noaa)
 ```
 
-Setting prcp, tmax, and tmin to standard unit, dividing by 10. Create new variables of year, month, and day.
+Setting prcp, tmax, and tmin to standard unit, dividing by 10. Create new variables of year, month, and day. 
+
+As shown in the summary table, there are NA issue for prcp, snow, snwd, tmax, and tmin. For prcp, it has 145838 NAs. For snow, it has 381221 NAs. For snwd, it has 591786 NAs. For tmax, it has 1134358 NAs. For tmin, it has 1134420 NAs. Especially for tmax and tmin, NAs take approximately more than 40% of total observations. NAs have to be dropped in further calculations.
 
 ```{r}
 # The most commonly observed values for snowfall
